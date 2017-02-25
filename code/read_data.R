@@ -1,6 +1,6 @@
 
 # Finds the names of the projects
-repositories = read.csv("repositories_info.csv", colClasses = c("NULL", "character", NA, NA, NA, NA, NA))
+repositories = read.csv("data/repositories_info.csv", colClasses = c("NULL", "character", NA, NA, NA, NA, NA))
 
 # Reads the data of the projects
 read_metrics_data <- function(..., type) {
@@ -11,7 +11,7 @@ read_metrics_data <- function(..., type) {
   else {
     files = lapply(param_list, function(i) paste(type, "/", i, "-", type, ".csv", sep = ""))
   }
-  contents = lapply(files, 
+  contents = lapply(files,
                       function(file){
                         filename = unlist(strsplit(file, "/"))[2]
                         Project_Name = gsub(paste("-", type, ".csv", sep = ""), "", filename)

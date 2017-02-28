@@ -1,4 +1,4 @@
-function train(this)
+function a=train(this)
 % System::train is the main editable script for running experiments
 
 %% Preprocess
@@ -21,3 +21,4 @@ targetset= model.target.cl_star(dataset, this.reader.repositories(repo,:));
 evalResults= this.scorer.train(scoreDset, targetset);
 
 % That's it! Now, analyse evalResults
+a= {scoreDset, targetset};

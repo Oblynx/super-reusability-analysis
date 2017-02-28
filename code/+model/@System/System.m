@@ -14,6 +14,6 @@ classdef System
       this.scorer= model.Scorer;
     end
     
-    train(this)
+    a=train(this)
   end
 end

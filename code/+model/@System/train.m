@@ -12,7 +12,7 @@ dataset= this.reader.load(repo,'Class');
 
 %% Scoring model
 % Calculate the target set according to target::cl_star
-targetset= target.cl_star(dataset, this.reader.repositories(repo,:));
+targetset= model.target.cl_star(dataset, this.reader.repositories(repo,:));
 
 % Train
 evalResults= this.scorer.train(dataset, targetset);

@@ -1,8 +1,8 @@
 classdef System
   % The system is a network of connected models that infers
-  properties
+  properties (Access= private)
     reader;
-    acceptanceModel;
+    acceptanceClassifier;
     scorer;
   end
   
@@ -10,8 +10,8 @@ classdef System
     
     function this= System()
       this.reader= DataReader;
-      this.acceptanceModel= AcceptanceModel;
-      this.scorer= Scorer;
+      this.acceptanceClassifier= model.AcceptanceClassifier;
+      this.scorer= model.Scorer;
     end
     
     train(this)

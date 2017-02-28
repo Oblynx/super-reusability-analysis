@@ -7,8 +7,12 @@ properties %(Access= protected)
 end
 
 methods (Abstract)
+  % x: table row
   y= infer(x);
+  % dataset: matrix, targetset: vector
   evalResults= train(this, dataset, targetset);
+  % testset: matrix
+  %score= evaluate(this, testSet)
 end
 
 methods (Access= protected)
@@ -26,7 +30,10 @@ methods (Access= protected)
     end
   end
   
-  function score= evaluate(this, testSet)
+  function saveModel(this)
+    storedmodel= this.model;
+    save(this.storedmodelpath, 'storedmodel');
   end
+  
 end
 end

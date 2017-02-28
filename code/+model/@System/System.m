@@ -1,6 +1,6 @@
 classdef System
   % The system is a network of connected models that infers
-  properties (Access= private)
+  properties %(Access= private)
     reader;
     acceptanceClassifier;
     scorer;

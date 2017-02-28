@@ -8,24 +8,18 @@ end
 
 methods
   function this= AcceptanceClassifier()
-    %{
-    if ~isempty(dir(this.storedmodelpath))  % If stored parameters exist
-      try
-        load(this.storedmodelpath);
-        this.model= storedmodel;  % storedmodel: var name in file
-      catch
-      end
-    end
-    %}
-    this@model.Model('code/+model/AcceptanceClassifier_storedmodel.mat');
+    this= this@model.Model('code/+model/AcceptanceClassifier_storedmodel.mat');
   end
 
-  function evalResults= train(this, dataset, targetset)
+  function train(this, dataset)
   % After training, the model is stored in the 'storedmodelpath' file and can be
   % used after MATLAB restarts, until train is called again.
-    this.model= fitcsvm();
+    this.model= fitcsvm(dataset,ones(size(dataset,1),1), 'Standardize',true, ...
+      'KernelFunction','RBF', ...
+      'KernelScale','auto', 'OutlierFraction',0.05, 'Nu',0.3);
+    this.saveModel();
   end
-  
+
   function y= infer(x)
   end
 end

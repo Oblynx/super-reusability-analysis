@@ -11,7 +11,11 @@ methods
   function evalResults= train(this, dataset, targetset)
   % After training, the model is stored in the 'storedmodelpath' file and can be
   % used after MATLAB restarts, until train is called again.
-    this.model= fitcsvm();
+    
+    evalResults= 1;
+  end
+  
+  function score= evaluate(this, testSet)
   end
   
   function y= infer(x)

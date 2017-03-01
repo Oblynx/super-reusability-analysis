@@ -3,8 +3,8 @@ classdef Scorer < model.Model
 
 properties
   param= struct( ...
-    'hiddenLayerSize',[35],...   % Size of each hidden layer
-    'trainFcn','trainscg',...        % Training function (trainlm,trainscg,trainbr)
+    'hiddenLayerSize',[80, 30, 5],...   % Size of each hidden layer
+    'trainFcn','trainlm',...        % Training function (trainlm,trainscg,trainbr)
     'performFcn','mse',...          % Error function
     'max_fail',30,...               % Terminate if validation increases for this many epochs
     'ratios', [0.7 0.15 0.15] ...
@@ -63,6 +63,8 @@ methods
     this.model.plotFcns= {'plotperform','ploterrhist','plotregression'};
     %this.model.plotParams{2}.bins= 30;
     
+    this.model.trainParam.showCommandLine= true;
+    this.model.trainParam.showWindow= false;
     this.model.trainParam.max_fail= this.param.max_fail;
     
     %% Divide dataset to train,validation,test parts

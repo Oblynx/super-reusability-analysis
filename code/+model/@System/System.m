@@ -19,6 +19,7 @@ classdef System
   end
   
   methods (Static)
+  % Data preprocessing functions
     function nocorrCols= onlyNocorrCols()
     % Correlation analysis has found many correlated columns and some have been
     % eliminated to simplify the dataset. These are in the "toremove" vector
@@ -28,6 +29,15 @@ classdef System
         j= find(nocorrCols==toremove(i));
         nocorrCols= [nocorrCols(1:j-1),nocorrCols(j+1:end)];
       end
+    end
+  % Remove low-PCA metrics
+    function highPCA= onlyHighPCACols()
+      
+      [~,pcProjection,~,~,var_attr]= pca(dset);
+      var_attr(1:22)
+      r_pca= corr(dset, pcProjection(:,1:5));
+      pred_score= sum(abs(r_pca),2);
+      [~,best_pred]= sort(pred_score,'descend');
     end
   end
 end

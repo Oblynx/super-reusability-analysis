@@ -1,4 +1,4 @@
-%clear; close all;
+clear; close all;
 addpath('code');
 
 system= model.System;   % Constructs a "System" object
@@ -14,7 +14,7 @@ figure, imagesc(r_data); colorbar;
 % Metrics PCA
 [~,pcProjection,~,~,var_attr]= pca(dset);
 var_attr(1:22)
-r_pca= corr(dset, pcProjection(:,1:3));
+r_pca= corr(dset, pcProjection(:,1:5));
 pred_score= sum(abs(r_pca),2);
 [~,best_pred]= sort(pred_score,'descend');
 %}

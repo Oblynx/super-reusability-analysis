@@ -2,7 +2,7 @@ function a=trainAll(this)
 % System::train is the main editable script for running experiments
 
 %% Preprocess
-maxrepo= 60;
+maxrepo= 80;
 
 % Load all project class metrics
 allDatasets= this.reader.loadAll('Class',true);

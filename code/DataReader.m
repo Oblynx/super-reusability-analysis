@@ -1,6 +1,7 @@
 classdef DataReader
 properties (SetAccess= private)
   repositories;
+  savedCsvdataPath= 'data/cachedCsvdata.mat';
 end
 
 methods
@@ -11,11 +12,16 @@ methods
     reader.repositories= reader.repositories(:,[1,3:7]);
   end
   
-  function data= loadAll(this, type)
-    data= cell(size(this.repositories,1),2);
-    for i= 1:size(this.repositories,1)
-      data{i,1}= this.repositories.Properties.RowNames(i);
-      data{i,2}= DataReader.load(this.repositories.Properties.RowNames(i), type);
+  function data= loadAll(this, type, reload)
+    if (reload && ~isempty(dir(this.savedCsvdataPath)))  % If stored data exist
+      load(this.savedCsvdataPath);
+    else
+      data= cell(size(this.repositories,1),2);
+      for i= 1:size(this.repositories,1)
+        data{i,1}= this.repositories.Properties.RowNames(i);
+        data{i,2}= DataReader.load(this.repositories.Properties.RowNames(i), type);
+      end
+      save(this.savedCsvdataPath, 'data');
     end
   end
 end

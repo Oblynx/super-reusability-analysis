@@ -1,4 +1,4 @@
-classdef Model
+classdef Model < handle
 % Defines the interface for each model
 properties %(Access= protected)
   storedmodelpath;
@@ -8,11 +8,9 @@ end
 
 methods (Abstract)
   % x: table row
-  y= infer(x);
+  y= infer(this, x);
   % dataset: matrix, targetset: vector
   evalResults= train(this, dataset, targetset);
-  % testset: matrix
-  %score= evaluate(this, testSet)
 end
 
 methods (Access= protected)

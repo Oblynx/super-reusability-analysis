@@ -1,4 +1,4 @@
-function a=train(this)
+function a=trainSingle(this)
 % System::train is the main editable script for running experiments
 
 %% Preprocess
@@ -18,7 +18,9 @@ this.acceptanceClassifier.train(scoreDset);
 targetset= model.target.cl_star(dataset, this.reader.repositories(repo,:));
 
 % Train
-evalResults= this.scorer.train(scoreDset, targetset);
+this.scorer.train(scoreDset, targetset);
 
-% That's it! Now, analyse evalResults
+% That's it!
+
+% Debug
 a= {scoreDset, targetset};

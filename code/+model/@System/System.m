@@ -7,13 +7,14 @@ classdef System
   end
   
   methods
-    
     function this= System()
       this.reader= DataReader;
       this.acceptanceClassifier= model.AcceptanceClassifier;
       this.scorer= model.Scorer;
     end
     
-    a=train(this)
+    a= trainSingle(this)
+    a= trainAll(this)
+    s= pcaSelector(this,k)
   end
 end

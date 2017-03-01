@@ -4,9 +4,9 @@ classdef Scorer < model.Model
 properties
   param= struct( ...
     'hiddenLayerSize',[35],...   % Size of each hidden layer
-    'trainFcn','trainlm',...        % Training function (trainlm,trainscg,trainbr)
+    'trainFcn','trainscg',...        % Training function (trainlm,trainscg,trainbr)
     'performFcn','mse',...          % Error function
-    'max_fail',10,...               % Terminate if validation increases for this many epochs
+    'max_fail',30,...               % Terminate if validation increases for this many epochs
     'ratios', [0.7 0.15 0.15] ...
     );
 end
@@ -28,7 +28,7 @@ methods
     else this.configureModel(repoStarts); end
     
     %% Train model
-    [this.model,tr] = train(this.model,x,t, 'useParallel','yes', 'showresources','yes');
+    [this.model,tr]= train(this.model,x,t, 'useParallel','yes', 'showresources','yes');
     %figure, plotperform(tr);
     
     %% Evaluate model

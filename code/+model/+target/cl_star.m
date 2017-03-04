@@ -4,8 +4,8 @@ function score= cl_star(repoDataset,repoInfo)
 % repoInfo [table]: the repo's stars (1 row of repositories info table)
 
 repoStars= repoInfo{1,'Stars'};
-nclass= size(repoDataset,1);
+nclass= repoInfo{1,'Num_of_Classes'};
 dep= repoDataset{:,'CBOI'};
 if any(iscell(dep)), dep= cell2mat(repoDataset{:,'CBOI'}); end
-score= log( (1+dep) * repoStars/nclass );
+score= log2((1+dep) * repoStars/nclass);
 end

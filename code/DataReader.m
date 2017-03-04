@@ -1,7 +1,7 @@
 classdef DataReader
 properties (SetAccess= private)
   repositories;
-  savedCsvdataPath= 'data/cachedCsvdata.mat';
+  savedCsvdataPath= 'data/cachedCsvdata';
 end
 
 methods
@@ -13,16 +13,17 @@ methods
   end
   
   function data= loadAll(this, type, reload)
-    if (reload && ~isempty(dir(this.savedCsvdataPath)))  % If stored data exist
-      load(this.savedCsvdataPath);
+    if (reload && ~isempty(dir([this.savedCsvdataPath,type,'.mat'])))  % If stored data exist
+      load([this.savedCsvdataPath,type,'.mat']);
     else
       data= cell(size(this.repositories,1),2);
       for i= 1:size(this.repositories,1)
         data{i,1}= this.repositories.Properties.RowNames(i);
         data{i,2}= DataReader.load(this.repositories.Properties.RowNames(i), type);
       end
-      save(this.savedCsvdataPath, 'data');
+      save([this.savedCsvdataPath,type,'.mat'], 'data');
     end
+    data= Dataset(data);
   end
 end
 
@@ -54,6 +55,7 @@ methods (Static)
       data= cell2table(c,'VariableNames',tableheader);
       fclose(f);
     end
+    data.Path= zeros(size(data,1),1);
   end
 end
 end

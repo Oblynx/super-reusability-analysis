@@ -1,9 +1,10 @@
-classdef System
+classdef System < handle
   % The system is a network of connected models that infers
-  properties %(Access= private)
+  properties
     reader;
     acceptanceClassifier;
     scorer;
+    dataset;
   end
   
   methods
@@ -13,31 +14,39 @@ classdef System
       this.scorer= model.Scorer;
     end
     
+    %function [dataset,repoStarts,allDatasets]= prepareDataset(this, type, maxrepo)
+    function this= prepareDataset(this, type, maxrepo)
+    % type: {'Method','Class','Package'}
+    % maxrepo: keep repos from 1 to maxrepo
+      % Load all project class metrics
+      this.dataset= this.reader.loadAll(type,true);
+      %{
+      dataset= vertcat(allDatasets{1:maxrepo,2});     % Implode all tables into one
+      dataset= dataset(:,11:70);                      % Select static analysis metrics
+      dataset= utils.eliminateCorrelatedMetrics(dataset);
+      % Keep track of how many classes were in each repo. Useful in dividing train/test sets
+      repoLengths= cellfun(@(x) size(x,1), allDatasets(:,2));
+      repoStarts= cumsum([1;repoLengths]);
+      %}
+      this.dataset.selectedRepos(maxrepo+1:end)= 0;
+      this.dataset.selector.scorerC(61:end)= 0;
+      
+      % Eliminate correlations
+      this.dataset.selector.scorerC(this.scorer.correlatedMetricsToRemove)= 0;
+      % Select based on PCA
+      this.dataset.selector.accC(this.acceptanceClassifier.acceptanceMetrics)= 1; 
+    end
+    
     a= trainSingle(this)
     a= trainAll(this)
-    s= pcaSelector(this,k)
-  end
-  
-  methods (Static)
-  % Data preprocessing functions
-    function nocorrCols= onlyNocorrCols()
-    % Correlation analysis has found many correlated columns and some have been
-    % eliminated to simplify the dataset. These are in the "toremove" vector
-      toremove= [5,6,7,8,20,21,19,37,27,29,31,32,42,46,47,33,43,48,35,38,50,40,41,44,52,56];
-      nocorrCols= (11:70)-10;
-      for i=1:length(toremove)
-        j= find(nocorrCols==toremove(i));
-        nocorrCols= [nocorrCols(1:j-1),nocorrCols(j+1:end)];
-      end
-    end
-  % Remove low-PCA metrics
-    function highPCA= onlyHighPCACols()
+    
+    function filterDataset(this, acceptanceMask)
+      f1= this.dataset.getScorer().TNOS > 12;
+      %f2=
       
-      [~,pcProjection,~,~,var_attr]= pca(dset);
-      var_attr(1:22)
-      r_pca= corr(dset, pcProjection(:,1:5));
-      pred_score= sum(abs(r_pca),2);
-      [~,best_pred]= sort(pred_score,'descend');
+      % Apply filters
+      this.dataset.selector.scorerR= this.dataset.selector.scorerR & f1 & acceptanceMask;
+      this.dataset.selector.accR= this.dataset.selector.accR & f1 & acceptanceMask;
     end
   end
 end

@@ -2,34 +2,41 @@ function a=trainAll(this)
 % System::train is the main editable script for running experiments
 
 %% Preprocess
-maxrepo= 80;
-
-% Load all project class metrics
-allDatasets= this.reader.loadAll('Class',true);
-dataset= vertcat(allDatasets{1:maxrepo,2});   % Implode all tables into one
-dataset= dataset(:,11:70);               % Select static analysis metrics
-dataset= dataset(:, model.System.onlyNocorrCols());
-
-% Keep track of how many classes were in each repo. Useful in dividing train/test sets
-repoLengths= cellfun(@(x) size(x,1), allDatasets(:,2));
-repoStarts= cumsum([1;repoLengths]);
-
-%% One-class
-% Skip at first
-% slow for all data
-%this.acceptanceClassifier.train(scoreDset);
+maxrepo= 100;
+%[dataset,repoStarts,allDatasets]= this.prepareDataset('Class',maxrepo);
+this.prepareDataset('Class',maxrepo);
 
 %% Scoring model
 % Calculate the target set according to target::cl_star
-targetset= cellfun(@(repoD,repoN) model.target.cl_star(repoD, this.reader.repositories(repoN,:)), ...
-                   allDatasets(:,2), allDatasets(:,1), 'UniformOutput',false);
-targetset= vertcat(targetset{1:maxrepo});
+%{
+targetset= cell(dataset.repoNum,1);
+for i= 1:length(targetset)
+  targetset{i}= model.target.cl_full(allDatasets{i,2}, this.reader.repositories(allDatasets{i,1},:));
+end
+%}
+%targetset= cellfun(@(repoD,repoN) model.target.cl_full(repoD, this.reader.repositories(repoN,:)), ...
+%                   allDatasets(:,2), allDatasets(:,1), 'UniformOutput',false);
+%targetset= vertcat(targetset{1:maxrepo});
 
-% Train
-scoreDset= dataset{:,:};                 % Turn into matrix (from table)
-this.scorer.train(scoreDset, targetset, repoStarts(1:maxrepo+1));
+% Train scorer only on good samples
+this.acceptanceClassifier.train(this.dataset.getAcc());
+acceptanceMask= this.acceptanceClassifier.filter(dataset);
+this.filterDataset(acceptanceMask);
+
+this.dataset.setTarget(@(repoD,repoN) model.target.cl_full(repoD, ...
+                            this.reader.repositories(repoN,:)), [14 54]);
+
+
+[scorerData,scorerTarget]= this.dataset.getScorer();
+this.scorer.train(scorerData,scorerTarget);
 
 % That's it!
 
-% Debug
-a= {scoreDset, targetset, this.scorer};
+% PREPROCESSING
+% SVM gamma -> stadiaki meiosi
+% 1. hand-crafted rules (throw 5% min/max from critical metric distributions)
+% 2. xreiazetai to SVM en telei?
+% Play with 1 repo models (+model selector before the models)
+
+%% Debug
+a= {this.dataset, this.acceptanceClassifier, this.scorer};

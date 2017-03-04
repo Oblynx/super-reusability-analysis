@@ -14,39 +14,39 @@ classdef System < handle
       this.scorer= model.Scorer;
     end
     
-    %function [dataset,repoStarts,allDatasets]= prepareDataset(this, type, maxrepo)
-    function this= prepareDataset(this, type, maxrepo)
+    function prepareDataset(this, type, maxrepo)
     % type: {'Method','Class','Package'}
     % maxrepo: keep repos from 1 to maxrepo
       % Load all project class metrics
       this.dataset= this.reader.loadAll(type,true);
-      %{
-      dataset= vertcat(allDatasets{1:maxrepo,2});     % Implode all tables into one
-      dataset= dataset(:,11:70);                      % Select static analysis metrics
-      dataset= utils.eliminateCorrelatedMetrics(dataset);
-      % Keep track of how many classes were in each repo. Useful in dividing train/test sets
-      repoLengths= cellfun(@(x) size(x,1), allDatasets(:,2));
-      repoStarts= cumsum([1;repoLengths]);
-      %}
       this.dataset.selectedRepos(maxrepo+1:end)= 0;
       this.dataset.selector.scorerC(61:end)= 0;
+      this.dataset.selector.accC(:)= 0;
       
       % Eliminate correlations
       this.dataset.selector.scorerC(this.scorer.correlatedMetricsToRemove)= 0;
-      % Select based on PCA
-      this.dataset.selector.accC(this.acceptanceClassifier.acceptanceMetrics)= 1; 
+      % Select ACC metrics based on PCA
+      this.dataset.selector.accC(this.acceptanceClassifier.acceptanceMetrics)= 1;
+      % Remove low quality data based on fixed rules
+      this.filterDataset(this.lowQualityMask());
     end
     
-    a= trainSingle(this)
-    a= trainAll(this)
-    
-    function filterDataset(this, acceptanceMask)
-      f1= this.dataset.getScorer().TNOS > 12;
-      %f2=
-      
-      % Apply filters
-      this.dataset.selector.scorerR= this.dataset.selector.scorerR & f1 & acceptanceMask;
-      this.dataset.selector.accR= this.dataset.selector.accR & f1 & acceptanceMask;
+    function mask= lowQualityMask(this)
+      d= this.dataset.getScorer();
+      f1= d.TNOS > 10;        % Remove too small classes
+      f2= d.CBO > 0;          % Remove classes that aren't used by anyone else (not reusable)
+      f3= (d.NLPM > 0) | (d.NLPA > 0);  % Remove classes without any public methods or attributes
+      mask= f1&f2&f3;
     end
+    
+    function filterDataset(this, mask)
+    % Apply filters to data. Only deselects.
+      currentlySelected= this.dataset.selector.R==1;
+      this.dataset.selector.R(currentlySelected)= ...
+        this.dataset.selector.R(currentlySelected) & mask;
+    end
+
+    a= trainSingle(this);
+    a= trainAll(this);
   end
 end

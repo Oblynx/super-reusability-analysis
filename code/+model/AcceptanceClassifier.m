@@ -12,7 +12,7 @@ properties
   supportVectorRatio;
   outlierFraction;
   params= struct( ...
-    'passScore',0.9 ...
+    'passScore',0 ...
     );
 end
 
@@ -27,16 +27,20 @@ methods
   % file and can be used after MATLAB restarts, until train is called again.
   % dataset [table]
     this.model= fitcsvm(dataset,ones(size(dataset,1),1), 'Standardize',true, ...
-      'KernelScale',0.1, 'Nu',0.1, 'Verbose',1);
+      'KernelScale','auto', 'Nu',0.20, 'OutlierFraction',0.06,'Verbose',1);
+    this.supportVectorRatio= size(this.model.SupportVectors,1)/size(dataset,1)
+    this.model.KernelParameters
+    this.saveModel();
     % Assess outlier fraction
     %
     cvmodel= crossval(this.model,'kfold',3);
     [~,score]= cvmodel.kfoldPredict();
+    [~,score2]= this.model.predict(dataset);
     this.outlierFraction= mean(score < 0)
+    outlierFraction2= mean(score2 < 0)
     %}
-    this.supportVectorRatio= size(this.model.SupportVectors,1)/size(dataset,1)
     
-    this.model= compact(this.model);  % Shed training data from model
+    %this.model= compact(this.model);  % Shed training data from model
     this.saveModel();
     this.initialized= true;
   end
@@ -44,9 +48,10 @@ methods
   function y= infer(x)
   end
   
-  function pass= filter(this, dataset)
+  function passMask= filter(this, dataset)
     [~,score]= this.model.predict(dataset);
-    pass= score > this.params.passScore;
+    passMask= score > this.params.passScore;
+    fprintf('[Acceptance::filter]: %f%% rejected\n', 1-sum(passMask)/length(passMask));
   end
   
 end

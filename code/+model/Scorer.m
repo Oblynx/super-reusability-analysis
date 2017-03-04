@@ -3,11 +3,12 @@ classdef Scorer < model.Model
 
 properties (SetAccess= immutable)
   correlatedMetricsToRemove= ...
-    [5,6,7,8,20,21,19,37,27,29,31,32,42,46,47,33,43,48,35,38,50,40,41,44,52,56];
+    [4,5,6,7,19,20,21,27,29,31,32,33,37,41,42,46,47,48,50,52,56];
+    %[5,6,7,8,20,21,19,37,27,29,31,32,42,46,47,33,43,48,35,38,50,40,41,44,52,56];
 end
 properties
   params= struct( ...
-    'hiddenLayerSize',[70 15],...   % Size of each hidden layer
+    'hiddenLayerSize',[25 38],...   % Size of each hidden layer
     'trainFcn','trainlm',...        % Training function (trainlm,trainscg,trainbr)
     'performFcn','mse',...          % Error function
     'max_fail',30,...               % Terminate if validation increases for this many epochs
@@ -23,7 +24,7 @@ methods
   function evalResults= train(this, dataset, targetset, repoStarts)
   % After training, the model is stored in the 'storedmodelpath' file and can be
   % used after MATLAB restarts, until train is called again.
-    
+    assert(~isempty(dataset));
     % NN requires observations in columns, not rows
     dataset= dataset{:,:};
     x= dataset'; t= targetset';
@@ -33,10 +34,9 @@ methods
     else this.configureModel(repoStarts); end
     
     this.model.layers{1}.transferFcn= 'tansig';
-    %this.model.layers{2}.transferFcn= 'tansig';
+    %this.model.layers{2}.transferFcn= 'radbasn';
     %% Train model
     [this.model,tr]= train(this.model,x,t, 'useParallel','yes', 'showresources','yes');
-    figure, plotperform(tr);
     %% Evaluate model
     y= this.model(x);
     rerr= gdivide(gsubtract(y,t), t+min(t));

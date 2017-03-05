@@ -1,0 +1,27 @@
+kernel = 
+
+  struct with fields:
+
+    Function: 'gaussian'
+       Scale: 0.5435
+
+
+this = 
+
+  AcceptanceClassifier with properties:
+
+     acceptanceMetrics: [25 59 3 15 57 22 17 12 14 54]
+    supportVectorRatio: 0.2019
+       outlierFraction: 0.0706
+                params: [1×1 struct]
+       storedmodelpath: 'code/+model/AcceptanceClassifier_storedmodel.mat'
+                 model: [1×1 ClassificationSVM]
+           initialized: 0
+
+
+outlierFraction2 =
+
+    0.0500
+
+[Acceptance::filter]: 0.050008% rejected
+Scorer dataset size: 44737x34

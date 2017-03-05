@@ -36,9 +36,11 @@ classdef Dataset < handle
       this.selector.scorerC(metricsToRemove)= 0;
     end
     
-    function [data,target]= getScorer(this)
+    function [data,target]= getScorer(this, addViolations)
+      selectedCols= this.selector.scorerC;
+      if nargin>1 && addViolations, selectedCols(61:end)= 1; end    % Add violations to results
       if ~this.cache.valid, this.updateCache(); end
-      data= this.cache.data(this.selector.R, this.selector.scorerC);
+      data= this.cache.data(this.selector.R, selectedCols);
       target= this.cache.target(this.selector.R,:);
     end
     function data= getAcc(this)

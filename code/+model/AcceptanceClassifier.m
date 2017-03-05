@@ -3,8 +3,9 @@ classdef AcceptanceClassifier < model.Model
 
 properties (SetAccess= immutable)
   acceptanceMetrics= ...    % Metrics that decide if the object is accepted
-    [25    59     3    15    57    22    17    12    14    54];
+    [17,3,31,12,14,33,8,4,11,10];
     %{'TCLOC','TNPM','CCO','NII','TNOS','PDA','RFC','WMC','CBOI','TNLPM'};
+    %{'TCLOC','CCO','TNOS','RFC','PDA','TNPM','WMC','LLDC','NOI','NII'};
 end
 properties
   %storedmodelpath= 'code/+model/AcceptanceClassifier_storedmodel.mat';
@@ -27,7 +28,7 @@ methods
   % file and can be used after MATLAB restarts, until train is called again.
   % dataset [table]
     this.model= fitcsvm(dataset,ones(size(dataset,1),1), 'Standardize',true, ...
-      'KernelScale','auto', 'Nu',0.20, 'OutlierFraction',0.06,'Verbose',1);
+      'KernelScale','auto', 'Nu',0.20, 'OutlierFraction',0.05,'Verbose',1);
     this.supportVectorRatio= size(this.model.SupportVectors,1)/size(dataset,1)
     this.model.KernelParameters
     this.saveModel();

@@ -20,7 +20,7 @@ methods
   function this= Scorer()
     this@model.Model('code/+model/Scorer_storedmodel.mat');
   end
-%{
+%
   function evalResults= train(this, dataset, targetset, repoStarts)
   % After training, the model is stored in the 'storedmodelpath' file and can be
   % used after MATLAB restarts, until train is called again.
@@ -50,7 +50,7 @@ methods
     evalResults= struct('trainRerr',trainRerr,'valRerr',valRerr,'testRerr',testRerr);
   end
 %}
-  
+%{  
   function evalResults= train(this, dataset, targetset)
     % Arrange dataset
     dataset= dataset{:,:};
@@ -93,9 +93,8 @@ methods
     % Evaluate tuned
     y= classifier(xtest);
     plotconfusion(ctest,y, 'After tuning');
-    
   end
-  
+%}
   function y= infer(this, x)
     if this.initialized
       y= this.model(x);

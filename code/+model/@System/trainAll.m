@@ -15,14 +15,14 @@ utils.metricCorr(dset,0.8, this.scorer.correlatedMetricsToRemove);
 % Train scorer only on good samples
 %this.acceptanceClassifier.train(this.dataset.getAcc());
   pre= this.dataset.selector.R; %DEBUG
-%acceptanceMask= this.acceptanceClassifier.filter(this.dataset.getScorer());
-%this.filterDataset(acceptanceMask);
-
-  [svmAcc,svmRej]= utils.filterGetRejectedAccepted(this.dataset, pre); %DEBUG
+acceptanceMask= this.acceptanceClassifier.filter(this.dataset.getScorer());
+this.filterDataset(acceptanceMask);
 
 %% Scoring model
 this.dataset.setTarget(@(repoD,repoN) model.target.cl_full(repoD, ...
-                            this.reader.repositories(repoN,:)), [14 54]);
+                            this.reader.repositories(repoN,:)), [14 44 59]);
+
+  [svmAcc,svmRej]= utils.filterGetRejectedAccepted(this.dataset, pre); %DEBUG
 
 [scorerData,scorerTarget]= this.dataset.getScorer();
 fprintf('Scorer dataset size: %dx%d\n', size(scorerData,1), size(scorerData,2));

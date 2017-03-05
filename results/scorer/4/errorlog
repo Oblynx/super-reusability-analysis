@@ -1,0 +1,13 @@
+trainRerr =
+
+    0.1642
+
+
+valRerr =
+
+    0.1656
+
+
+testRerr =
+
+    0.1709

@@ -5,7 +5,8 @@ function score= cl_fork(repoDataset,repoInfo)
 
 repoForks= repoInfo{1,'Forks'};
 nclass= repoInfo{1,'Num_of_Classes'};
-pub= repoDataset{:,'TNLPM'};          % "Public front"
-if any(iscell(pub)), pub= cell2mat(repoDataset{:,'TNLPM'}); end
-score= log2((1+pub) * repoForks/nclass);
+pub= repoDataset{:,'NPM'};          % "Public front"
+if any(iscell(pub)), pub= cell2mat(repoDataset{:,'NPM'}); end
+score= log2((1+pub) * (1+repoForks/nclass));
+score(score>10)= 10;
 end

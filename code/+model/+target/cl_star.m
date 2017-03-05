@@ -7,5 +7,6 @@ repoStars= repoInfo{1,'Stars'};
 nclass= repoInfo{1,'Num_of_Classes'};
 dep= repoDataset{:,'CBOI'};
 if any(iscell(dep)), dep= cell2mat(repoDataset{:,'CBOI'}); end
-score= log2((1+dep) * repoStars/nclass);
+score= log2((1+dep) * (1+repoStars/nclass));
+score(score>10)= 10;
 end

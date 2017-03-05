@@ -3,15 +3,14 @@ classdef Scorer < model.Model
 
 properties (SetAccess= immutable)
   correlatedMetricsToRemove= ...
-    [4,5,6,7,19,20,21,27,29,31,32,33,37,38,39,41,42,43,46,47,48,50,52,56];
-    %[5,6,7,8,20,21,19,37,27,29,31,32,42,46,47,33,43,48,35,38,50,40,41,44,52,56];
+    [4,5,6,7,11,16,19,20,21,29,30,31,32,33,37,38,39,41,42,46,47,48,49,50,51,52,55,56,58];
 end
 properties
   params= struct( ...
-    'hiddenLayerSize',[28],...   % Size of each hidden layer
-    'trainFcn','trainscg',...        % Training function (trainlm,trainscg,trainbr)
+    'hiddenLayerSize',[22],...   % Size of each hidden layer
+    'trainFcn','trainlm',...        % Training function (trainlm,trainscg,trainbr)
     'performFcn','mse',...          % Error function
-    'max_fail',30,...               % Terminate if validation increases for this many epochs
+    'max_fail',12,...               % Terminate if validation increases for this many epochs
     'ratios', [0.7 0.15 0.15] ...
     );
 end
@@ -30,27 +29,32 @@ methods
     x= dataset'; t= targetset';
     
     this.model= fitnet(this.params.hiddenLayerSize,this.params.trainFcn);
+    %this.model= patternnet(this.params.hiddenLayerSize, this.params.trainFcn);
     if nargin < 4, this.configureModel();
     else this.configureModel(repoStarts); end
     
     this.model.layers{1}.transferFcn= 'tansig';
     %this.model.layers{2}.transferFcn= 'radbasn';
+       
     %% Train model
     [this.model,tr]= train(this.model,x,t, 'useParallel','yes', 'showresources','yes');
+    %c= utils.discretizeLevels(t,t);
+    %[this.model,tr]= train(this.model,x,c, 'useParallel','yes', 'showresources','yes');
     %% Evaluate model
+    %
     y= this.model(x);
     rerr= gdivide(gsubtract(y,t), t+min(t));
     trainRerr= median(abs(rerr(tr.trainInd)))
     valRerr= median(abs(rerr(tr.valInd)))
     testRerr= median(abs(rerr(tr.testInd)))
-    
+    %}
     % Save to file and return evaluation
     this.saveModel();
     this.initialized= true;
     evalResults= struct('trainRerr',trainRerr,'valRerr',valRerr,'testRerr',testRerr);
   end
 %}
-%{  
+%{
   function evalResults= train(this, dataset, targetset)
     % Arrange dataset
     dataset= dataset{:,:};
@@ -74,12 +78,6 @@ methods
     plotWeights(autoenc);
     features= autoenc.encode(xtrain);
     %}
-    
-    c= utils.discretizeLevels(t, t);
-    this.model= patternnet(this.params.hiddenLayerSize, this.params.trainFcn);
-    this.configureModel();
-    this.model= train(this.model, x,c, 'useParallel','yes', 'showresources','yes');
-    
     
     %softnet = trainSoftmaxLayer(features,ctrain,'MaxEpochs',700);
     %classifier = stack(autoenc,softnet);
@@ -106,9 +104,8 @@ methods
   function this= configureModel(this, repoStarts)
     this.model.input.processFcns= {'removeconstantrows','mapminmax','processpca'};
     this.model.output.processFcns= {'removeconstantrows','mapminmax'};
-    %this.model.performFcn= this.params.performFcn;
-    %this.model.plotFcns= {'plotperform','ploterrhist','plotregression'};
-    %this.model.plotParams{2}.bins= 30;
+    this.model.performFcn= this.params.performFcn;
+    this.model.plotParams{3}.bins= 50;
     
     % Training parameters
     this.model.trainParam.showCommandLine= true;

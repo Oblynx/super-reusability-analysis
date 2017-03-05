@@ -23,7 +23,7 @@ classdef System < handle
       % Remove top-5% most-starred & forked repos (from total repos)
       repoCut= 95;
       repoRmMask= this.filterRepos(repoCut);
-      %this.dataset.selectedRepos(repoRmMask)= 0;
+      this.dataset.selectedRepos(repoRmMask)= 0;
       % Deselect all acceptanceClassifier columns at first
       this.dataset.selector.accC(:)= 0;
       % Remove violations

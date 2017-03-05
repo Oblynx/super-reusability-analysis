@@ -2,15 +2,14 @@ function a=trainAll(this)
 % System::train is the main editable script for running experiments
 
 %% Preprocess
-maxrepo= 90;
+maxrepo= 137;
 %[dataset,repoStarts,allDatasets]= this.prepareDataset('Class',maxrepo);
 this.prepareDataset('Class',maxrepo);
 
 % Metrics correlation analysis
-%{
-this.filterDataset(ones(148464,1));
+%
 dset= this.dataset.getScorer();
-utils.metricCorr(dset,0.85, []);
+utils.metricCorr(dset,0, []);
 %toremove= [4,5,6,7,19,20,21,27,29,31,32,33,37,41,42,46,47,48,50,52,56]; utils.metricCorr(dset,0.8, toremove);
 %}
 

@@ -3,13 +3,13 @@ classdef Scorer < model.Model
 
 properties (SetAccess= immutable)
   correlatedMetricsToRemove= ...
-    [4,5,6,7,19,20,21,27,29,31,32,33,37,41,42,46,47,48,50,52,56];
+    [4,5,6,7,19,20,21,27,29,31,32,33,37,38,39,41,42,43,46,47,48,50,52,56];
     %[5,6,7,8,20,21,19,37,27,29,31,32,42,46,47,33,43,48,35,38,50,40,41,44,52,56];
 end
 properties
   params= struct( ...
-    'hiddenLayerSize',[25 38],...   % Size of each hidden layer
-    'trainFcn','trainlm',...        % Training function (trainlm,trainscg,trainbr)
+    'hiddenLayerSize',[28],...   % Size of each hidden layer
+    'trainFcn','trainscg',...        % Training function (trainlm,trainscg,trainbr)
     'performFcn','mse',...          % Error function
     'max_fail',30,...               % Terminate if validation increases for this many epochs
     'ratios', [0.7 0.15 0.15] ...
@@ -20,7 +20,7 @@ methods
   function this= Scorer()
     this@model.Model('code/+model/Scorer_storedmodel.mat');
   end
-
+%{
   function evalResults= train(this, dataset, targetset, repoStarts)
   % After training, the model is stored in the 'storedmodelpath' file and can be
   % used after MATLAB restarts, until train is called again.
@@ -28,8 +28,8 @@ methods
     % NN requires observations in columns, not rows
     dataset= dataset{:,:};
     x= dataset'; t= targetset';
-    trainFcn= this.params.trainFcn;
-    this.model= fitnet(this.params.hiddenLayerSize,trainFcn);
+    
+    this.model= fitnet(this.params.hiddenLayerSize,this.params.trainFcn);
     if nargin < 4, this.configureModel();
     else this.configureModel(repoStarts); end
     
@@ -40,13 +40,6 @@ methods
     %% Evaluate model
     y= this.model(x);
     rerr= gdivide(gsubtract(y,t), t+min(t));
-    %trainTargets= t .* tr.trainMask{1};
-    %validTargets= t .* tr.valMask{1};
-    %testTargets= t .* tr.testMask{1};
-    %trainRelPerformance= perform(this.model,trainTargets,y) ./ median(t)
-    %validRelPerformance= perform(this.model,validTargets,y) ./ median(t)
-    %testRelPerformance= perform(this.model,testTargets,y) ./ median(t)
-    %testAbsPerformance= perform(this.model,testTargets,y)
     trainRerr= median(abs(rerr(tr.trainInd)))
     valRerr= median(abs(rerr(tr.valInd)))
     testRerr= median(abs(rerr(tr.testInd)))
@@ -54,9 +47,53 @@ methods
     % Save to file and return evaluation
     this.saveModel();
     this.initialized= true;
-    %evalResults= struct('trainPerform',trainRelPerformance, ...
-    %  'validPerform',validRelPerformance, 'testPerform',testRelPerformance);
     evalResults= struct('trainRerr',trainRerr,'valRerr',valRerr,'testRerr',testRerr);
+  end
+%}
+  
+  function evalResults= train(this, dataset, targetset)
+    % Arrange dataset
+    dataset= dataset{:,:};
+    x= dataset'; t= targetset';
+    nobs= size(dataset,1);
+    trainIdx= randsample(1:nobs, floor(this.params.ratios(1)*nobs));  % numeric
+    testIdx= utils.allbut(nobs, trainIdx);  % logical
+    xtrain= x(:,trainIdx); ttrain= t(trainIdx); xtest= x(:,testIdx); ttest= t(testIdx);
+    % Make classes
+    ctrain= utils.discretizeLevels(ttrain, ttrain);
+    ctest= utils.discretizeLevels(ttest, ttrain);
+    
+    %{
+    % Build autoencoder feature extractor
+    autoenc= trainAutoencoder(xtrain,this.params.hiddenLayerSize(1), ...
+      'MaxEpochs',1000, ...
+      'L2WeightRegularization',0.001, ...
+      'SparsityRegularization',4, ...
+      'SparsityProportion',0.05, ...
+      'DecoderTransferFunction','purelin');
+    plotWeights(autoenc);
+    features= autoenc.encode(xtrain);
+    %}
+    
+    c= utils.discretizeLevels(t, t);
+    this.model= patternnet(this.params.hiddenLayerSize, this.params.trainFcn);
+    this.configureModel();
+    this.model= train(this.model, x,c, 'useParallel','yes', 'showresources','yes');
+    
+    
+    %softnet = trainSoftmaxLayer(features,ctrain,'MaxEpochs',700);
+    %classifier = stack(autoenc,softnet);
+    % Evaluate
+    xrec= autoenc.predict(xtrain);
+    autoencMse= mse(xtrain-xrec)
+    y= classifier(xtest);
+    figure, plotconfusion(ctest,y, 'Before tuning');
+    % Tune
+    classifier= classifier.train(xtrain,ctrain);
+    % Evaluate tuned
+    y= classifier(xtest);
+    plotconfusion(ctest,y, 'After tuning');
+    
   end
   
   function y= infer(this, x)
@@ -70,9 +107,9 @@ methods
   function this= configureModel(this, repoStarts)
     this.model.input.processFcns= {'removeconstantrows','mapminmax','processpca'};
     this.model.output.processFcns= {'removeconstantrows','mapminmax'};
-    this.model.performFcn= this.params.performFcn;
-    this.model.plotFcns= {'plotperform','ploterrhist','plotregression'};
-    this.model.plotParams{2}.bins= 30;
+    %this.model.performFcn= this.params.performFcn;
+    %this.model.plotFcns= {'plotperform','ploterrhist','plotregression'};
+    %this.model.plotParams{2}.bins= 30;
     
     % Training parameters
     this.model.trainParam.showCommandLine= true;

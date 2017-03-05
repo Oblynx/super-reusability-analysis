@@ -23,17 +23,17 @@ classdef System < handle
       this.dataset.selector.scorerC(61:end)= 0;
       this.dataset.selector.accC(:)= 0;
       
+      % Remove low quality data based on fixed rules
+      this.filterDataset(this.lowQualityMask());
       % Eliminate correlations
       this.dataset.selector.scorerC(this.scorer.correlatedMetricsToRemove)= 0;
       % Select ACC metrics based on PCA
       this.dataset.selector.accC(this.acceptanceClassifier.acceptanceMetrics)= 1;
-      % Remove low quality data based on fixed rules
-      this.filterDataset(this.lowQualityMask());
     end
     
     function mask= lowQualityMask(this)
       d= this.dataset.getScorer();
-      f1= d.TNOS > 10;        % Remove too small classes
+      f1= d.TNOS > 8;         % Remove too small classes (>50% of dataset!!!)
       f2= d.CBO > 0;          % Remove classes that aren't used by anyone else (not reusable)
       f3= (d.NLPM > 0) | (d.NLPA > 0);  % Remove classes without any public methods or attributes
       mask= f1&f2&f3;

@@ -7,10 +7,10 @@ properties (SetAccess= immutable)
 end
 properties
   params= struct( ...
-    'hiddenLayerSize',[22],...   % Size of each hidden layer
+    'hiddenLayerSize',[20 5],...   % Size of each hidden layer
     'trainFcn','trainlm',...        % Training function (trainlm,trainscg,trainbr)
     'performFcn','mse',...          % Error function
-    'max_fail',12,...               % Terminate if validation increases for this many epochs
+    'max_fail',10,...               % Terminate if validation increases for this many epochs
     'ratios', [0.7 0.15 0.15] ...
     );
 end
@@ -29,17 +29,30 @@ methods
     x= dataset'; t= targetset';
     
     this.model= fitnet(this.params.hiddenLayerSize,this.params.trainFcn);
-    %this.model= patternnet(this.params.hiddenLayerSize, this.params.trainFcn);
-    if nargin < 4, this.configureModel();
-    else this.configureModel(repoStarts); end
+    if nargin < 4, this.configureModel(dataset);
+    else this.configureModel(dataset,repoStarts); end
     
-    this.model.layers{1}.transferFcn= 'tansig';
-    %this.model.layers{2}.transferFcn= 'radbasn';
-       
+    %% Autoencoder feature extraction
+    %{
+    xtrain= x(:,this.model.divideParam.trainInd);
+    autoenc= trainAutoencoder(xtrain,this.params.hiddenLayerSize(1), ...
+      'MaxEpochs',1500, ...
+      'L2WeightRegularization',0.001, ...
+      'SparsityRegularization',5, ...
+      'SparsityProportion',0.2, ...
+      'useGPU',true);
+    plotWeights(autoenc);
+    y= autoenc.predict(xtrain);
+    autoencMAE= median(abs(y-xtrain))
+    % Train regression layer
+    features= autoenc.encode(x);
+    [this.model,tr]= train(this.model,features,t, 'useParallel','yes', 'showresources','yes');
+    this.model= stack(autoenc,this.model);
+    % Tune stacked network
+    %[this.model,tr]= train(this.model,x,t, 'useParallel','yes', 'showresources','yes');
+    %}
     %% Train model
-    [this.model,tr]= train(this.model,x,t, 'useParallel','yes', 'showresources','yes');
-    %c= utils.discretizeLevels(t,t);
-    %[this.model,tr]= train(this.model,x,c, 'useParallel','yes', 'showresources','yes');
+    [this.model,tr]= train(this.model,x,t, 'useParallel','yes', 'showresources','yes','useGPU','no');
     %% Evaluate model
     %
     y= this.model(x);
@@ -101,11 +114,13 @@ methods
     end
   end
   
-  function this= configureModel(this, repoStarts)
+  function this= configureModel(this, dataset,repoStarts)
     this.model.input.processFcns= {'removeconstantrows','mapminmax','processpca'};
     this.model.output.processFcns= {'removeconstantrows','mapminmax'};
     this.model.performFcn= this.params.performFcn;
-    this.model.plotParams{3}.bins= 50;
+    this.model.plotParams{3}.bins= 40;
+    %this.model.layers{1}.transferFcn= 'tansig';
+    %this.model.layers{2}.transferFcn= 'radbasn';
     
     % Training parameters
     this.model.trainParam.showCommandLine= true;
@@ -116,12 +131,20 @@ methods
     %% Divide dataset to train,validation,test parts
     % For the time being, the naive approach of treating each sample independently is followed
     this.params.ratios= this.params.ratios/sum(this.params.ratios);
-    %if nargin < 2
+    %if nargin < 3
       % If this is a single repo, split among the data
-      this.model.divideFcn= 'dividerand';  % Divide data randomly
-      this.model.divideParam.trainRatio= this.params.ratios(1);
-      this.model.divideParam.valRatio= this.params.ratios(2);
-      this.model.divideParam.testRatio= this.params.ratios(3);
+      n= size(dataset,1);
+      idx= zeros(n,1); population= 1:n;
+      testIdx= randsample(population, floor(this.params.ratios(3)*n));
+      idx(testIdx)= 3; population= find(idx==0);
+      valIdx= randsample(population, floor(this.params.ratios(2)*n));
+      idx(valIdx)= 2;
+      trainIdx= find(idx==0);
+      
+      this.model.divideFcn= 'divideind';
+      this.model.divideParam.trainInd= trainIdx;
+      this.model.divideParam.valInd= valIdx;
+      this.model.divideParam.testInd= testIdx;
     %{
     else
       % If there are multiple repos, then split along the repos (some repos for

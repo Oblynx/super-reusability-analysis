@@ -26,7 +26,7 @@ this.dataset.setTarget(@(repoD,repoN) model.target.cl_full(repoD, ...
 
 [scorerData,scorerTarget]= this.dataset.getScorer();
 fprintf('Scorer dataset size: %dx%d\n', size(scorerData,1), size(scorerData,2));
-%this.scorer.train(scorerData,scorerTarget);
+this.scorer.train(scorerData,scorerTarget);
 
 % That's it!
 

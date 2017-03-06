@@ -1,4 +1,5 @@
 function a=trainSingle(this)
+%%  ###***   O.B.S.O.L.E.T.E   ***### (use trainAll instead)
 % System::train is the main editable script for running experiments
 
 %% Preprocess

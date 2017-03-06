@@ -1,3 +1,5 @@
+% This script is the entrypoint for training the system with the class data
+
 clear; close all;
 addpath('code');
 % Train the system

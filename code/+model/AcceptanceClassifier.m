@@ -47,6 +47,7 @@ methods
   end
 
   function y= infer(x)
+    % TOREMOVE
   end
   
   function passMask= filter(this, dataset)

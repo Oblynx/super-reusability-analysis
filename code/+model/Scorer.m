@@ -108,6 +108,7 @@ methods
 %}
   function y= infer(this, x)
     if this.initialized
+      x= x{:,:}';
       y= this.model(x);
     else
       fprintf('[Scorer::infer]: Attempted to use untrained model. Train first\n');

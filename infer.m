@@ -1,7 +1,7 @@
 % This script shows how the already trained system can be used. When the system is trained,
 % its state is saved in .mat files. When the system is then run from here these are reloaded.
 % Input: a csv file with class metrics for a repo, with the corresponding entry in the
-% 'repositories.csv' index
+% 'repositories.csv' index. NOTE: the initial csv syntax was not easy to import, so use the bash scripts provided to filter it
 
 % The input repo name (assuming the csv file is named in the convention of the training samples)
 input= 'bigbluebutton';

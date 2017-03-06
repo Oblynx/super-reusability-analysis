@@ -37,8 +37,13 @@ classdef System < handle
       xscorer= x(selectedData, selectedMetrics);
       y(selectedData)= this.scorer.infer(xscorer);
     end
-    
-    
+    %{
+    function repoScore= inferRepoScore(this, classScores, repoName)
+    % classScores [vector]: the vector returned by System::infer
+      repoInfo= this.reader.repositories(repoName,:);
+      
+    end
+    %}
     function prepareDataset(this, type, maxrepo)
     % type: {'Method','Class','Package'}
     % maxrepo: keep repos from 1 to maxrepo
